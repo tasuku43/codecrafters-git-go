@@ -1,0 +1,10 @@
+version: '3'
+services:
+  app:
+    image: golang:1.19
+    volumes:
+      - ./cmd:/app/cmd
+      - ./go.mod:/app/go.mod
+      - ./your_git.sh:/app/your_git
+    working_dir: /app
+    command: bash
