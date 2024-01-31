@@ -17,25 +17,36 @@ func main() {
 
 	switch command := os.Args[1]; command {
 	case "init":
-		for _, dir := range []string{".git", ".git/objects", ".git/refs"} {
-			if err := os.MkdirAll(dir, 0755); err != nil {
-				fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
-			}
-		}
-
-		headFileContents := []byte("ref: refs/heads/master\n")
-		if err := os.WriteFile(".git/HEAD", headFileContents, 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
-		}
-
-		fmt.Println("Initialized git directory")
+		initGit()
 	case "cat-file":
-		if len(os.Args) != 4 || os.Args[2] != "-p" {
-			fmt.Fprintf(os.Stderr, "Error: usage: your_git.sh cat-file -p <hash>\n")
+		catFile(os.Args[2:])
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown command %s\n", command)
+		os.Exit(1)
+	}
+}
+
+func initGit() {
+	for _, dir := range []string{".git", ".git/objects", ".git/refs"} {
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
 			os.Exit(1)
 		}
+	}
 
-		hash := os.Args[3]
+	headFileContents := []byte("ref: refs/heads/master\n")
+	if err := os.WriteFile(".git/HEAD", headFileContents, 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Initialized git directory")
+}
+
+func catFile(args []string) {
+	switch option := args[0]; option {
+	case "-p":
+		hash := args[1]
 		file, err := os.Open(fmt.Sprintf(".git/objects/%s/%s", hash[:2], hash[2:]))
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error opening file: %s\n", err)
@@ -71,7 +82,7 @@ func main() {
 		}
 		fmt.Print(splitContent[1])
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command %s\n", command)
+		fmt.Fprintf(os.Stderr, "Unknown option %s\n", option)
 		os.Exit(1)
 	}
 }
