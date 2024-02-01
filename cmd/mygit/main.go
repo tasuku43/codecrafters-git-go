@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"compress/zlib"
+	"crypto/sha1"
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -20,6 +23,8 @@ func main() {
 		initGit()
 	case "cat-file":
 		catFile(os.Args[2:])
+	case "hash-object":
+		hashObject(os.Args[2:])
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command %s\n", command)
 		os.Exit(1)
@@ -81,6 +86,53 @@ func catFile(args []string) {
 			os.Exit(1)
 		}
 		fmt.Print(splitContent[1])
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown option %s\n", option)
+		os.Exit(1)
+	}
+}
+
+func hashObject(args []string) {
+	switch option := args[0]; option {
+	case "-w":
+		data, err := os.ReadFile(args[1])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading file: %s\n", err)
+			os.Exit(1)
+		}
+
+		header := fmt.Sprintf("blob %d\x00", len(data))
+		hasher := sha1.New()
+		data = []byte(header + string(data))
+		hasher.Write([]byte(data))
+		hashBytes := hasher.Sum(nil)
+		hesh := fmt.Sprintf("%x", hashBytes)
+
+		var buffer bytes.Buffer
+		w := zlib.NewWriter(&buffer)
+		_, err = w.Write(data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing to zlib writer: %s\n", err)
+			os.Exit(1)
+		}
+		err = w.Close()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error closing zlib writer: %s\n", err)
+			os.Exit(1)
+		}
+
+		filePath := fmt.Sprintf(".git/objects/%s/%s", hesh[:2], hesh[2:])
+		dir := filepath.Dir(filePath)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
+			os.Exit(1)
+		}
+		if err := os.WriteFile(filePath, buffer.Bytes(), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Fprintf(os.Stdout, "%s", hesh)
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown option %s\n", option)
 		os.Exit(1)
