@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-func Init() {
+func Init() Message {
 	directories := []string{".git", ".git/objects", ".git/refs"}
 
 	for _, dir := range directories {
@@ -19,5 +19,5 @@ func Init() {
 		handleError(err, "Error writing .git/HEAD file")
 	}
 
-	fmt.Println("Initialized git directory")
+	return Message("Initialized git directory")
 }

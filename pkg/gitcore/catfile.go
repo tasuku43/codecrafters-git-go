@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func CatFile(args []string) {
+func CatFile(args []string) Message {
 	if len(args) < 2 || args[0] != "-p" {
 		handleError(fmt.Errorf("invalid usage"), "Usage: -p <hash>")
 	}
@@ -26,7 +26,7 @@ func CatFile(args []string) {
 		handleError(fmt.Errorf("invalid object format"), "")
 	}
 
-	fmt.Print(splitContent[1])
+	return Message(splitContent[1])
 }
 
 func getObjectFilePath(hash string) string {

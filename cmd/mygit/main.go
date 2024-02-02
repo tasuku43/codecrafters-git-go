@@ -15,11 +15,13 @@ func main() {
 
 	switch command := os.Args[1]; command {
 	case "init":
-		gitcore.Init()
+		gitcore.Init().Println()
 	case "cat-file":
-		gitcore.CatFile(os.Args[2:])
+		gitcore.CatFile(os.Args[2:]).Print()
 	case "hash-object":
-		gitcore.HashObject(os.Args[2:])
+		gitcore.HashObject(os.Args[2:]).Println()
+	case "ls-tree":
+		gitcore.LsTree(os.Args[2:]).Println()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown command %s\n", command)
 		os.Exit(1)

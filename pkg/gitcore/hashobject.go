@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 )
 
-func HashObject(args []string) {
+func HashObject(args []string) Message {
 	if len(args) < 2 || args[0] != "-w" {
 		handleError(fmt.Errorf("invalid usage"), "Usage: -w <file_path>")
 	}
@@ -20,7 +20,7 @@ func HashObject(args []string) {
 	filePath := fmt.Sprintf(".git/objects/%s/%s", hash[:2], hash[2:])
 	writeFile(filePath, compressedData)
 
-	fmt.Println(hash)
+	return Message(hash)
 }
 
 func readData(filePath string) []byte {
